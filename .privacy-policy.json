@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "binary_assets": {
+    "tools/fonts/InterDisplay-SemiBold.ttf": "0310d7a325896129730c6c8cf9a6e0f81ee258bedf77b1ff059b2a7b75f74e02",
+    "tools/fonts/NotoSansSC.ttf": "a3041811a78c361b1de50f953c805e0244951c21c5bd412f7232ef0d899af0da"
+  },
+  "fixture_exceptions": [
+    {
+      "path": "mac_bridge/tests/test_claude.py",
+      "rule": "credential-url",
+      "sha256": "20f049c024d1ac3e950ec9a659668dab0985191dcc48181c014cdfd111914de7",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "mac_bridge/tests/test_claude.py",
+      "rule": "personal-path",
+      "sha256": "2c2f141b79b326b4fae097bb1312c9d299b6b51074f158bdc177d1ddb6039e1d",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "mac_bridge/tests/test_claude.py",
+      "rule": "personal-path",
+      "sha256": "4c9b26881113f6cdc00eab9bb8584953c3e4bde364813153dc511ca0513a258c",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "mac_bridge/tests/test_claude.py",
+      "rule": "personal-path",
+      "sha256": "fb11e45eb2b71b594512c5aecdb524f06cb648629b7184e8eae9c69cb4df8e7a",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "mac_bridge/tests/test_codex.py",
+      "rule": "credential-literal",
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "mac_bridge/tests/test_codex.py",
+      "rule": "credential-url",
+      "sha256": "b9689e752d07feae5919de93cdd6aa51285bc7e20dd6cd288bc50c92755c1b3a",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "mac_bridge/tests/test_hub.py",
+      "rule": "credential-literal",
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "src/network/wifi_manager.cpp",
+      "rule": "private-network",
+      "sha256": "725b4c8929840ff6c88be48f3ea31e88d7b44485de136c65a1b90965874d17d5",
+      "reason": "Previously audited setup form IPv4 input placeholder; not a configured host."
+    },
+    {
+      "path": "tests/wifi_manager/stubs/WiFi.h",
+      "rule": "private-network",
+      "sha256": "4c77a37c18c62b0d6ad2118a6cfeb15170302053fc29efad5081191a3b2a949a",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/stubs/WiFi.h",
+      "rule": "private-network",
+      "sha256": "c998356e48dfd9114259d650f997eb21a1918d3463eaacb149108868a2274e9d",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "credential-literal",
+      "sha256": "5a776d62381e3834ef2555308cd0f74b19dedce366a9ea5046b11f2b87bd25fc",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "credential-literal",
+      "sha256": "6c372dd37f3215a78c9fd18b68af77821e76c57bd6d57569db07ad456ac96882",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "credential-literal",
+      "sha256": "803903546627e6e9119441c5c7ebecd0e6b6a783a84496dcec0688f2ce01ab3d",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "credential-literal",
+      "sha256": "ab9bb402f80e78bb5bf846d4ac350179e60faf2c3ff1c0513f4dc9fc3b65a3bc",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "credential-literal",
+      "sha256": "b692b1d0705efea19cf9a85da2c04314b02c0801da14e245281c28847a2b391a",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "credential-literal",
+      "sha256": "c50d1444b0d66012e228a70e9c9c4ff12adbb63ed6ab8a647cbf83296a94e125",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "credential-literal",
+      "sha256": "db9e5806e74ced21007da520363ed77cdbeae27691ce65b56d2ca9b8acac34b4",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    },
+    {
+      "path": "tests/wifi_manager/test_wifi_manager.cpp",
+      "rule": "private-network",
+      "sha256": "725b4c8929840ff6c88be48f3ea31e88d7b44485de136c65a1b90965874d17d5",
+      "reason": "Previously audited synthetic offline test fixture; exact path, rule and value only."
+    }
+  ]
+}

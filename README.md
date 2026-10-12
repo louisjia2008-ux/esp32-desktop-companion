@@ -53,6 +53,7 @@
 ```sh
 git clone https://github.com/louisjia2008-ux/esp32-desktop-companion.git
 cd esp32-desktop-companion
+python3 scripts/install_privacy_guard.py
 python3 -m venv .venv
 .venv/bin/python -m pip install platformio
 .venv/bin/python -m pip install -r mac_bridge/requirements.txt
@@ -60,6 +61,8 @@ brew install ffmpeg
 ```
 
 最后一行是 Homebrew 安装方式，也可自行提供 `ffmpeg` / `ffprobe`。
+
+隐私检查安装器为当前克隆安装 `pre-commit` / `pre-push` hooks，并下载校验固定版本的 Gitleaks。**每个新克隆都需要执行安装命令**；发现密钥、Wi-Fi / 配对凭据、运行日志或其他受保护内容时，本地检查会阻止提交或推送，检查工具缺失时也会阻止。安装步骤、离线安装、规则和限制见 [自动隐私检查](docs/PRIVACY_GUARD.md)。
 
 ## 构建与首次安装
 
@@ -130,7 +133,8 @@ PYTHONPATH=mac_bridge .venv/bin/python -m unittest discover -s mac_bridge/tests 
 - [桌面 Hub 与 Mac 控制](docs/DESKTOP_HUB.md)、[时钟与亮度](docs/AMBIENT_DISPLAY.md)
 - [SD 壁纸协议](docs/SD_WALLPAPER.md)、[事件卡片](docs/EVENT_SYSTEM.md)、[OTA 和回滚](docs/OTA.md)
 - [Codex 进度](docs/CODEX_PROGRESS.md)、[Claude Code 集成](docs/CLAUDE_CODE.md)
-- [隐私与公开范围](docs/PRIVACY.md)、[验证状态](docs/VALIDATION.md)、[第三方声明](THIRD_PARTY_NOTICES.md)
+- [隐私与公开范围](docs/PRIVACY.md)、[自动隐私检查](docs/PRIVACY_GUARD.md)
+- [验证状态](docs/VALIDATION.md)、[第三方声明](THIRD_PARTY_NOTICES.md)
 
 ```text
 include/       板级 GPIO、版本和触摸接口
