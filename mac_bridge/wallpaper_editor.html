@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>ESP32 动态壁纸工作台</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0c0b'/%3E%3Crect x='13' y='16' width='38' height='32' rx='6' fill='%23c9ff36'/%3E%3Crect x='18' y='21' width='28' height='22' rx='3' fill='%230b0c0b'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/assets/editor.css">
+    <script src="/assets/editor.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="动态壁纸工作台首页">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>
+          <strong>ESP32 Wallpaper Studio</strong>
+          <small>本机动态壁纸工作台</small>
+        </span>
+      </a>
+      <div class="connection-row" aria-live="polite">
+        <span class="status-pill"><i id="bridge-dot"></i><span id="bridge-status">Bridge 检测中</span></span>
+        <span class="status-pill"><i id="device-dot"></i><span id="device-status">ESP32 检测中</span></span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="intro">
+          <p class="eyebrow">LOCAL · PRIVATE · LOOPBACK ONLY</p>
+          <h1 id="page-title">把你喜欢的视频，<br><em>放进这块小屏幕。</em></h1>
+          <p class="lede">选择电脑里的 MP4 或其他常见视频。Bridge 会在本机裁切、压缩并转换为 ESP32 能稳定播放的格式，源文件不会上传到互联网。</p>
+          <div class="limits" aria-label="导入限制">
+            <span>最长 10 分钟</span>
+            <span>最大 800 MB</span>
+            <span>6–12 FPS</span>
+          </div>
+        </div>
+
+        <div class="screen-column">
+          <div class="screen-shell">
+            <div class="screen-bezel">
+              <div class="screen-preview" id="preview-surface">
+                <video id="preview-video" muted loop playsinline></video>
+                <div class="empty-preview" id="empty-preview">
+                  <span class="empty-orbit" aria-hidden="true"></span>
+                  <strong>480 × 320</strong>
+                  <small>等待选择视频</small>
+                </div>
+                <div class="preview-label">
+                  <span id="preview-name">LIVE PREVIEW</span>
+                  <i aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+            <span class="stand" aria-hidden="true"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="import-panel" aria-labelledby="import-title">
+        <div class="section-heading">
+          <span>01</span>
+          <div>
+            <h2 id="import-title">导入新壁纸</h2>
+            <p>Import a local video</p>
+          </div>
+        </div>
+
+        <div class="import-grid">
+          <label class="drop-zone" id="drop-zone" for="file-input">
+            <input id="file-input" type="file" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv">
+            <span class="plus" aria-hidden="true">＋</span>
+            <strong id="drop-title">拖放视频到这里</strong>
+            <span id="drop-subtitle">或点击选择电脑中的文件</span>
+          </label>
+
+          <div class="options">
+            <fieldset>
+              <legend>画面适配</legend>
+              <label class="segmented">
+                <input type="radio" name="fit" value="cover" checked>
+                <span><b>铺满</b><small>Cover · 推荐</small></span>
+              </label>
+              <label class="segmented">
+                <input type="radio" name="fit" value="contain">
+                <span><b>完整显示</b><small>Contain · 留黑边</small></span>
+              </label>
+            </fieldset>
+
+            <label class="select-label" for="fps-select">
+              <span>播放帧率</span>
+              <select id="fps-select">
+                <option value="6">6 FPS · 省带宽</option>
+                <option value="8">8 FPS</option>
+                <option value="10" selected>10 FPS · 推荐</option>
+                <option value="12">12 FPS · 更流畅</option>
+              </select>
+            </label>
+
+            <button class="primary-button" id="upload-button" type="button" disabled>
+              <span>转码并应用到 ESP32</span>
+              <small>TRANSCODE &amp; APPLY</small>
+            </button>
+          </div>
+        </div>
+
+        <div class="job-status" id="job-status" hidden aria-live="polite">
+          <div>
+            <strong id="job-title">正在上传</strong>
+            <span id="job-detail">准备中…</span>
+          </div>
+          <progress id="job-progress" max="100" value="0"></progress>
+        </div>
+      </section>
+
+      <section class="library-panel" aria-labelledby="library-title">
+        <div class="section-heading">
+          <span>02</span>
+          <div>
+            <h2 id="library-title">我的壁纸库</h2>
+            <p>Stored only on this Mac</p>
+          </div>
+        </div>
+        <div class="library-toolbar">
+          <p id="library-summary" tabindex="-1">正在读取本机壁纸库…</p>
+          <button class="quiet-button" id="refresh-button" type="button">刷新状态</button>
+        </div>
+        <p class="library-message" id="library-message" role="status" aria-live="polite" hidden></p>
+        <div class="wallpaper-grid" id="wallpaper-grid" aria-live="polite"></div>
+        <div class="empty-library" id="empty-library" hidden>
+          <strong>还没有导入过动态壁纸</strong>
+          <span>从上方选择一个视频，第一张卡片会出现在这里。</span>
+        </div>
+      </section>
+
+      <section class="display-panel" aria-labelledby="display-title">
+        <div class="section-heading">
+          <span>03</span>
+          <div>
+            <h2 id="display-title">屏幕与亮度</h2>
+            <p>Clock &amp; night dimming</p>
+          </div>
+        </div>
+        <p class="display-lede">时间来自这台 Mac。在 ESP32 主页轻点一下可以隐藏或显示时钟。设置保存后会同步到设备，断开 Bridge 也会继续生效。</p>
+        <form class="display-form" id="display-form">
+          <fieldset>
+            <legend>夜间模式</legend>
+            <label class="field-label">开始<input type="time" id="night-start" required></label>
+            <label class="field-label">结束<input type="time" id="night-end" required></label>
+            <label class="field-label">夜间亮度 <output id="night-level-value"></output>
+              <input type="range" id="night-level" min="1" max="100"></label>
+            <label class="field-label">夜里触摸或有卡片时 <output id="night-wake-value"></output>
+              <input type="range" id="night-wake-level" min="1" max="100"></label>
+          </fieldset>
+          <fieldset>
+            <legend>白天</legend>
+            <label class="field-label">亮度 <output id="day-level-value"></output>
+              <input type="range" id="day-level" min="5" max="100"></label>
+            <label class="field-label">无操作多久后变暗
+              <select id="idle-dim">
+                <option value="0">从不</option>
+                <option value="60">1 分钟</option>
+                <option value="120">2 分钟</option>
+                <option value="300">5 分钟</option>
+                <option value="600">10 分钟</option>
+                <option value="1800">30 分钟</option>
+              </select></label>
+            <label class="field-label">变暗后亮度 <output id="idle-level-value"></output>
+              <input type="range" id="idle-level" min="1" max="100"></label>
+          </fieldset>
+          <div class="display-actions">
+            <p id="display-message" role="status" aria-live="polite"></p>
+            <button class="primary-button" id="display-save" type="submit">
+              <span>保存并同步到 ESP32</span>
+              <small>SAVE &amp; SYNC</small>
+            </button>
+          </div>
+        </form>
+      </section>
+      <section class="display-panel" aria-labelledby="ota-title">
+        <div class="section-heading"><span>04</span><div>
+          <h2 id="ota-title">无线更新固件</h2><p>Firmware update</p>
+        </div></div>
+        <p class="display-lede">选择固件后，ESP32 会先询问是否安装。请在屏幕上长按“安装”1.5 秒，更新期间保持供电。</p>
+        <p id="ota-device">正在读取设备版本…</p>
+        <div class="display-actions">
+          <label class="field-label">固件文件 (.bin)
+            <input type="file" id="ota-file" accept=".bin,application/octet-stream">
+          </label>
+          <button class="primary-button" id="ota-send" type="button" disabled>
+            <span>发送到 ESP32 确认</span><small>SEND UPDATE</small>
+          </button>
+        </div>
+        <p id="ota-message" role="status" aria-live="polite">尚未发起更新</p>
+        <progress id="ota-progress" max="100" value="0" hidden aria-label="固件更新进度"></progress>
+      </section>
+
+      <section class="hub-panel" aria-labelledby="hub-title">
+        <div class="section-heading"><span>05</span><div><h2 id="hub-title">桌面工具</h2><p>Mac controls · Cards · Tasks · Usage</p></div></div>
+        <p class="hub-lede">在小屏幕上处理常用操作。新 Wi-Fi 配置、蓝牙配对和系统授权在 Mac 完成；ESP32 自身网络通过设备设置管理。</p>
+        <p id="hub-feedback" role="status" aria-live="polite">正在读取桌面工具…</p>
+        <div class="hub-grid">
+          <article class="hub-box"><h3>Mac 快捷控制</h3>
+            <div class="hub-inline"><label for="hub-volume">音量 <output id="hub-volume-value">—</output></label><button type="button" id="hub-mute">静音</button></div>
+            <input id="hub-volume" type="range" min="0" max="100" value="40" aria-label="Mac 音量">
+            <div class="hub-inline"><button type="button" data-hub-volume="20">20%</button><button type="button" data-hub-volume="40">40%</button><button type="button" data-hub-volume="60">60%</button></div>
+            <p id="hub-volume-reason" class="hub-note"></p>
+            <label for="hub-audio">音频输出</label><div class="hub-select"><select id="hub-audio"></select><button type="button" id="hub-audio-go">切换输出</button></div>
+            <label for="hub-bluetooth">已配对蓝牙设备</label><div class="hub-select"><select id="hub-bluetooth"></select></div>
+            <div class="hub-inline"><button type="button" id="hub-bt-connect">连接</button><button type="button" id="hub-bt-disconnect">断开</button></div>
+            <p class="hub-note">蓝牙连接状态与当前音频输出分别显示。</p>
+            <label for="hub-wifi">Mac 已保存 Wi-Fi</label><div class="hub-select"><select id="hub-wifi"></select><button type="button" id="hub-wifi-go">切换网络</button></div>
+            <p class="hub-note">切换网络可能暂时断开 Bridge；密码和交互认证在 Mac 完成。</p>
+            <div class="hub-inline"><button type="button" id="hub-airdrop">打开隔空投送</button><button type="button" id="hub-control-refresh">刷新状态</button></div>
+            <div class="hub-inline"><a href="x-apple.systempreferences:com.apple.BluetoothSettings">蓝牙设置</a><a href="x-apple.systempreferences:com.apple.wifi-settings-extension">Wi-Fi 设置</a><a href="x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices">定位与权限</a></div>
+            <div id="hub-permissions" class="hub-note"></div>
+          </article>
+          <article class="hub-box"><h3>临时信息卡</h3>
+            <form id="hub-card-form">
+              <label for="hub-card-kind">卡片类型</label><select id="hub-card-kind"><option value="text">文字</option><option value="link">链接与二维码</option><option value="file">待分享文件</option></select>
+              <label for="hub-card-title">标题</label><input id="hub-card-title" required placeholder="简短标题（最多 48 UTF-8 字节）">
+              <label id="hub-card-body-label" for="hub-card-body">正文</label><textarea id="hub-card-body" rows="3" placeholder="最多 512 UTF-8 字节"></textarea>
+              <p id="hub-file-note" class="hub-note" hidden>点击后会打开 Mac 原生文件选择器；文件路径保留在 Mac。</p>
+              <label for="hub-card-expiry">普通卡到期时间</label><select id="hub-card-expiry"><option value="5">5 分钟</option><option value="30" selected>30 分钟</option><option value="120">2 小时</option></select>
+              <button type="submit">创建并发送到小屏幕</button>
+            </form>
+            <p class="hub-note">最多 5 张。固定卡保留到主动清除；不会持续读取剪贴板。</p>
+            <div id="hub-cards" class="hub-list"></div>
+          </article>
+          <article class="hub-box"><h3>后台任务与会话</h3>
+            <p class="hub-note">本机命令通过 task-run 主动登记。会话的“本轮结束”表示一轮结束。</p>
+            <div id="hub-tasks" class="hub-list"></div>
+          </article>
+          <article class="hub-box" id="hub-usage-box"><div class="hub-inline"><h3>AI 用量</h3><button type="button" id="hub-usage-refresh">刷新 Codex</button></div>
+            <div id="hub-usage" class="hub-list"></div>
+            <p class="hub-note">按实际返回的窗口显示；剩余 25%、20%、15%、10%、5%、3%、1%、0% 提示。暂未提供和读取失败不会当作 0%。</p>
+            <p class="hub-note">首页显示透明额度摘要；独立 AI 用量页查看详细窗口与重置时间。Claude Code 五小时和周窗口已预留，等待它自己的采集器接入。</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>视频仅在 Mac 与 ESP32 之间同步。</span>
+      <span>保存到 SD 卡后，断开 Bridge 也可在设备上循环播放。</span>
+    </footer>
+
+    <dialog
+      class="delete-dialog"
+      id="delete-dialog"
+      aria-labelledby="delete-dialog-title"
+      aria-describedby="delete-dialog-description delete-dialog-impact"
+    >
+      <div class="delete-dialog-content">
+        <p class="eyebrow">PERMANENT DELETE</p>
+        <h2 id="delete-dialog-title">删除这张动态壁纸？</h2>
+        <p id="delete-dialog-description">将从这台 Mac 的壁纸库中永久删除源视频副本、预览图和已转码帧。</p>
+        <p class="delete-impact" id="delete-dialog-impact">你最初选择的文件不会受影响。此操作无法撤销。</p>
+        <p class="delete-dialog-error" id="delete-dialog-error" role="alert" hidden></p>
+        <div class="delete-dialog-actions">
+          <button class="dialog-cancel" id="delete-cancel" type="button" autofocus>取消</button>
+          <button class="dialog-confirm" id="delete-confirm" type="button">永久删除</button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

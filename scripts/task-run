@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""Explicit local task wrapper. Command output remains attached to this terminal."""
+import argparse,json,os,secrets,subprocess,sys,threading,time,signal
+from urllib.request import Request,build_opener,ProxyHandler
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--title',required=True);parser.add_argument('--source',default='task-run')
+parser.add_argument('--port',type=int,default=8766);parser.add_argument('--details-url')
+parser.add_argument('command',nargs=argparse.REMAINDER)
+a=parser.parse_args();command=a.command[1:] if a.command[:1]==['--'] else a.command
+if not command:parser.error('provide a command after --')
+if not 1<=a.port<=65535 or len(a.title.encode())>48:parser.error('invalid port or title (48 UTF-8 bytes maximum)')
+identifier=secrets.token_hex(8);seq=0;lock=threading.Lock();stop=threading.Event();pulse=threading.Event();current_state='running'
+def wait_state(_signal,_frame):
+ global current_state
+ current_state='waiting_input' if _signal==signal.SIGUSR1 else 'running';pulse.set()
+signal.signal(signal.SIGUSR1,wait_state);signal.signal(signal.SIGUSR2,wait_state)
+opener=build_opener(ProxyHandler({}))
+def update(state,summary=''):
+ global seq
+ with lock:
+  seq+=1;payload={'id':identifier,'source':a.source,'title':a.title,'state':state,'seq':seq,'updated_at':int(time.time()),'summary':summary}
+  if a.details_url:payload['details_url']=a.details_url
+  try:
+   req=Request(f'http://127.0.0.1:{a.port}/api/hub/tasks',data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
+   with opener.open(req,timeout=2) as response:response.read(4096)
+  except Exception:pass # Task must still execute if Bridge is unavailable.
+def heartbeat():
+ while not stop.is_set():
+  pulse.wait(15);pulse.clear()
+  if not stop.is_set():update(current_state)
+print(f'task-run id={identifier} pid={os.getpid()}',file=sys.stderr)
+update('running');thread=threading.Thread(target=heartbeat,daemon=True);thread.start()
+try:
+ child_env=os.environ.copy();child_env['TASK_HUB_ID']=identifier;child_env['TASK_HUB_PORT']=str(a.port);child_env['TASK_RUN_PID']=str(os.getpid())
+ proc=subprocess.Popen(command,env=child_env)
+ try:code=proc.wait()
+ except KeyboardInterrupt:
+  code=proc.wait()
+except OSError:
+ code=127
+finally:
+ stop.set();pulse.set();thread.join(timeout=3)
+update('success' if code==0 else 'failed',f'退出码 {code}')
+raise SystemExit(code if code>=0 else 128-code)
